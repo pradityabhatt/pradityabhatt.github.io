@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+author urvi patel(000770055)
+-->
+<html>
+    <head>
+        <title>Lab2-PartA</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Bootstrap Link -->
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- jQuary Link -->
+        <script src="js/jquery-3.2.1.min.js"></script>
+        <!--java script Link-->
+        <script src="parta.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Student Registry</h1>
+            <br/>
+            <br/>
+            <form class="form-horizontal" >
+                <!--name information-->
+                <div class="form-group row" id="nameGroup" >
+                    <label class="control-label col-sm-2" for="studentName">Student Name:</label>
+                    <div class="col-sm-6">
+                        <input  class="form-control" type="text" id="studentName">                          
+                        <span id="nameIcon"></span>
+                    </div>
+                    <span class="help-block" id="nameAlert"></span>
+                </div>
+                <!-- student id information-->
+                <div class="form-group row" id="idGroup">
+                    <label class="control-label col-sm-2" for="studentId" >Student ID:</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" type="text" id="studentId">
+                        <span id="idIcon"></span>
+                    </div>
+                    <span class="help-block" id="idAlert"></span>
+                </div>
+                <!--student program information-->
+                <div class="form-group row" id="programGroup">
+                    <label class="control-label col-sm-2" for="program">Program:</label>
+                    <div class="col-sm-6">
+                        <input  class="form-control" type="text" id="program">
+                        <span id="programIcon"></span>
+                    </div>
+                    <span class="help-block" id="programAlert"></span>
+                </div>
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-primary" id="submitButton">Submit</button>
+                </div>              
+            </form>
+            <br/>
+            <!--table for storing student information-->
+            <h2>Student Data table</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Student ID</th>
+                        <th>Program</th>
+                    </tr>
+                </thead>    
+                    <tbody id="tableContent">
+                    </tbody>    
+                </table>    
+            </div>        
+        </div>  
+    </body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+author urvi patel(000770055)
+-->
+<html>
+    <head>
+        <title>Lab2-PartB</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Bootstrap Link -->
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- jQuary Link -->
+        <script src="js/jquery-3.2.1.min.js"></script>
+        <style>
+            h1,h2,h3{
+                text-align: center;
+                font-weight: bold;
+            }
+            h3{
+                margin-top: 50px;
+            }
+            h4{
+                font-weight: bold;
+            }
+            /*spinner css*/
+            #loader {
+                border: 14px solid #f3f3f3;
+                border-radius: 50%;
+                border-top: 14px solid #3498db;
+                width: 190px;
+                height: 190px;
+                margin: auto;
+                margin-top: 100px;
+                -webkit-animation: spin 2s linear infinite; /* Safari */
+                animation: spin 2s linear infinite;
+            }
+
+            /* Safari */
+            @-webkit-keyframes spin {
+                0% { -webkit-transform: rotate(0deg); }
+                100% { -webkit-transform: rotate(360deg); }
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+        <script>
+            $(document).ready(function () {
+                var latitude;
+                var longitude;
+                //first hiding the information of restaurants
+                $("#restaurantInformation").hide();
+                //getting user's current location using geolocation 
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function (userPosition) {
+                        $("#h3heading").html("Finding restaurents near you...");
+                        latitude = userPosition.coords.latitude; //latitude of current location
+                        longitude = userPosition.coords.longitude; //longitude of current location
+                        //JSON object for restaurants near user's current location and here is AJAX request
+                        var allFoundRestaurant;
+                        $.getJSON(
+                                "https://csunix.mohawkcollege.ca/tooltime/10133/2019/api/api.php?lat=" + latitude + "&long=" + longitude,
+                                ///function that displays data of restaurants on screen
+                                        function (data) {
+                                            for (var i = 0; i < 20; i++) {
+                                                allFoundRestaurant = "<li class='media'><div class='media-left'><a href='#'>" +
+                                                        "<img class='media-object' style='width:120px;height:130px' src='" + data.businesses[i].image_url + "' alt='hotelLogo'></a></div>" +
+                                                        "<div class='media-body'><h4 class='media-heading'>" + data.businesses[i].name + "</h4>" +
+                                                        data.businesses[i].categories[0].title +
+                                                        "<br/>" + data.businesses[i].location.display_address +
+                                                        "<br/>" + data.businesses[i].display_phone +
+                                                        "<br/><img src='" + data.businesses[i].rating + ".png' alt='ratings'>" + data.businesses[i].review_count + "Reviews" + "</div></li>";
+                                                $("#restaurantsList").append(allFoundRestaurant);
+                                            }
+                                            $("#h3heading").hide();
+                                            $("#loader").hide();
+                                            $("#restaurantInformation").show();
+                                        },
+                                        );
+                                        
+                            });
+                }
+            });
+        </script>
+    </head>
+    <body class="container">
+
+        <h1>Random Restaurant</h1>
+        <h3 id="h3heading">Finding your location...</h3>
+        <div id="loader"></div>
+        <div id="restaurantInformation">
+            <h2>Found these restaurants...</h2>
+            <ul class="media-list" id="restaurantsList" ></ul>
+        </div>
+
+    </body>
+</html>

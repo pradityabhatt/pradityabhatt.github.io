@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html>
+<!--    000770055-UrviPatel-->
+<head>
+  <title>URVI'S TO DO LIST APP</title>
+<!--  react.js link-->
+  <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script> 
+<!--  react-dom.js link-->
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script> 
+<!--    babel compiler link-->
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+   <style>
+       
+        .mainClass{
+            background-image: url("bgfinal.jpg");
+            padding: 25px;
+            width: 50%;
+            margin: auto;
+            
+        }
+        h1{
+            text-align: center;
+            color: aqua;
+        }
+       #todoActivity{
+           margin-left: 70px;
+       }
+        .myActivity{
+            position: relative;
+            margin-left: 200px;
+        }
+       .ActivityTable{
+          margin: auto;
+          color:#B247E7;    
+/*              #26C35C;*/
+          font-size: 18px;
+       }
+       .ActivityName{
+           width: 500px;
+       }
+      
+    </style>    
+</head>
+   
+<body>
+    <div id="container"></div>
+    
+    <script type="text/babel">
+
+        /*
+          MyComponent class is class that has all event handler for ADD, EDIT and DELETE button and first time page Load look
+          this class alsos render the ToDOList 
+        
+        */
+        class MyComponent extends React.Component {
+            //constructor for component that initialise the page
+            constructor(props) {
+                super(props);
+                this.state = {mystate: "URVI'S APP!!!!!!!!!", 
+                             mylist: []};
+            } 
+            /*
+                when add button is clicked thet adds that activity in the list
+            */
+            
+            addActivityList(){
+                if(this.state.buttonValue == "editButton"){
+                     if(!document.getElementById("todoActivity").value == ""){
+                        this.state.mylist[this.state.editListNumber] = document.getElementById("todoActivity").value;
+                        this.setState({buttonValue: "addButton"});                                     
+                        document.getElementById("todoActivity").value = null;
+                        document.getElementById("addButton").innerHTML = "ADD";
+                     }
+                }else{
+                    if(!document.getElementById("todoActivity").value == ""){
+                        var myNewList = this.state.mylist;
+                        myNewList.push(document.getElementById("todoActivity").value)
+
+                        this.setState({
+                            mylist: myNewList
+                        });
+                        document.getElementById("todoActivity").value = null
+                    }
+                }
+            }
+            
+            /*
+                when delete button is clicked that deletes that activity
+            */
+            
+            deleteActivityList(key){
+                delete this.state.mylist[key];
+                this.setState(
+                  { mylist: this.state.mylist }
+                );
+                document.getElementById("todoActivity").value = null
+            }
+             /*
+                when edit button is clicked that activity shows into textbox and ADD button chnages to EDITs
+            */
+            
+            editActivityList(value,key){
+                this.setState(
+                    {
+                        buttonValue:"editButton",
+                        editListNumber: key
+                    }
+                    
+                );
+                document.getElementById("addButton").innerHTML = "EDIT";
+                document.getElementById("todoActivity").value = value; 
+            }
+            
+             /*
+                this code renders the TODoList 
+            */
+             render() {
+
+                return (
+                    <UrviToDoList 
+                        mystate= {this.state.mystate}
+                        mylist = {this.state.mylist}
+                        addActivityList = {this.addActivityList.bind(this)}
+                        deleteActivityList = {this.deleteActivityList.bind(this)}
+                        editActivityList = {this.editActivityList.bind(this)}
+                    />
+                ); 
+            }
+        };
+
+    
+        /*
+          UrviToDoList this class defines the way of printing to do list below the text box
+        
+        */
+
+        class UrviToDoList  extends React.Component{
+            
+            renderActivityList(value,key){
+                return (<ul>
+                            <table className="ActivityTable">
+                                <tr>
+                                    <td className="ActivityName">{value}</td>
+                                    <td><button id="editButton" onClick={this.props.editActivityList.bind(this,value,key)}>EDIT</button></td>
+                                    <td><button id="deleteButton" onClick={this.props.deleteActivityList.bind(this,key)}>DELETE</button></td>
+                                </tr>
+                            </table>
+                        </ul>
+                        );
+            };
+            
+            render(){
+                return(
+                    <div className= "mainClass">
+                        <h1> {this.props.mystate} </h1> 
+                            <div className="myActivity">
+                                <br/><br/><br/><br/><br/><br/>
+                                <input type="text" id="todoActivity"/>&nbsp;
+                                <button onClick={this.props.addActivityList} type="button" id="addButton">ADD</button> 
+                            </div>
+                        <br/><br/><br/>
+                        <div>{this.props.mylist.map(this.renderActivityList.bind(this))}</div> 
+                    </div>
+                );
+            }
+        };
+
+        /*
+          ReactDom object
+        */
+        
+        ReactDOM.render(
+            <MyComponent/>,
+            document.getElementById("container")
+        );
+
+
+    </script>
+</body>

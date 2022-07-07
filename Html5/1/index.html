@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Lab1</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type='text/css'>
+            button{
+                color:white;
+                background-color: maroon;
+                padding: 5px;
+            }
+            .allCenters{
+                background-color: blue;
+            }
+            img{
+                position:relative;
+                top:-50px;
+                width:35%;
+                float:right;
+
+            }
+            #errorMessage{
+                color:red;
+                font-weight: bold;
+                font-size: 20px;
+            }
+        </style>
+        <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key= AhIsv_BN4izs9jeBON-pH_xWOmckn0XZH22L46VTh5H1_E3ccPPxZ5mrpMccsN9f'></script>
+        <script type='text/javascript'>
+            // Recreational center information address longitude and latitude
+            var listRecs = [{"name": "Carlisle Community Centre & Arena", "address": "1496 Centre Road", "city": "Carlisle", "phone": "905-689-7283", "latitude": "43.39606", "longitude": "-79.98293"},
+                {"name": "Chedoke Twin Pad Arena", "address": "91 Chedmac Dr.", "city": "Hamilton", "phone": "905-546-2429", "latitude": "43.23889", "longitude": "-79.92077"},
+                {"name": "Coronation Arena and Pool", "address": "81 Macklin St. North", "city": "Hamilton", "phone": "905-546-3109", "latitude": "43.2646", "longitude": "-79.89598"},
+                {"name": "Eastwood Arena", "address": "111 Burlington St. East", "city": "Hamilton", "phone": "905-546-3152", "latitude": "43.27171", "longitude": "-79.85564"},
+                {"name": "Glanbrook Arena & Auditorium", "address": "4300 Binbrook Road", "city": "Binbrook", "phone": "905-692-9331", "latitude": "43.12911", "longitude": "-79.83908"},
+                {"name": "Inch Park Arena & Pool", "address": "400 Queensdale Ave.", "city": "Hamilton", "phone": "905-546-4922", "latitude": "43.23712", "longitude": "-79.85937"},
+                {"name": "Lawfield Arena", "address": "150 Folkstone Ave.", "city": "Hamilton", "phone": "905-546-4923", "latitude": "43.21464", "longitude": "-79.85116"},
+                {"name": "Market Street (J.L. Grightmire) Arena", "address": "35 Market St. South", "city": "Dundas", "phone": "905-540-6678", "latitude": "43.26596", "longitude": "-79.96339"},
+                {"name": "Mohawk 4 Ice Centre", "address": "710 Mountain Brow Blvd.", "city": "Hamilton", "phone": "905-318-5111", "latitude": "43.21037", "longitude": "-79.81616"},
+                {"name": "Morgan Firestone Arena", "address": "385 Jerseyville Road West", "city": "Ancaster", "phone": "905-546-3769", "latitude": "43.21674", "longitude": "-80.00733"},
+                {"name": "Mountain (Dave Andreychuk) Arena", "address": "25 Hester St.", "city": "Hamilton", "phone": "905-546-4938", "latitude": "43.22558", "longitude": "-79.88101"},
+                {"name": "North Wentworth Twin-Pad Arena", "address": "27 Hwy 5", "city": "Flamborough", "phone": "905-689-6666", "latitude": "43.3102291", "longitude": "-79.9202291"},
+                {"name": "Olympic Arena", "address": "70 Olympic Dr.", "city": "Dundas", "phone": "905-540-6686", "latitude": "43.27292", "longitude": "-79.93426"},
+                {"name": "Parkdale (Pat Quinn) Arena and Pool", "address": "1770 Main St. East", "city": "Hamilton", "phone": "905-546-4785", "latitude": "43.2366018", "longitude": "-79.7939014"},
+                {"name": "Rosedale Arena and Pool", "address": "100 Greenhill Ave.", "city": "Hamilton", "phone": "905-546-4805", "latitude": "43.21986", "longitude": "-79.80896"},
+                {"name": "Saltfleet Arena", "address": "24 Sherwood Park Road", "city": "Stoney Creek", "phone": "905-643-3883", "latitude": "43.21851", "longitude": "-79.70443"},
+                {"name": "Scott Park Arena", "address": "876 Cannon St. East", "city": "Hamilton", "phone": "905-546-4919", "latitude": "43.25033", "longitude": "-79.83038"},
+                {"name": "Spring Valley Arena", "address": "29 Orchard Dr.", "city": "Ancaster", "phone": "905-648-4404", "latitude": "43.217", "longitude": "-79.99774"},
+                {"name": "Stoney Creek Arena", "address": "37 King St. West", "city": "Stoney Creek", "phone": "905-662-2426", "latitude": "43.26648", "longitude": "-79.95509"},
+                {"name": "Valley Park Arena & Rec Centre", "address": "970 Paramount Dr.", "city": "Stoney Creek", "phone": "905-573-3600", "latitude": "43.19332", "longitude": "-79.79796"}];
+            var map, infobox;
+
+            //load the map and display our current location with pushpin and infobox tells the longitude and latitude of the current location
+            function loadMap() {
+                map = new Microsoft.Maps.Map(document.getElementById('myMap'), {});
+//                        {center: new Microsoft.Maps.Location( 43.2374316,-79.885671399999995)});
+                //current location 
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var loc = new Microsoft.Maps.Location(
+                            position.coords.latitude,
+                            position.coords.longitude);
+//                      var center = map.getCenter();
+
+                    //push pin and infobox for current location
+                    var pin = new Microsoft.Maps.Pushpin(loc);
+                    infobox = new Microsoft.Maps.Infobox(loc, {title: 'GPS puts You at',
+                        description: "Latitude" + position.coords.latitude + "<br/>" + "Longitude" + position.coords.longitude, visible: false});
+                    infobox.setMap(map);
+                    Microsoft.Maps.Events.addHandler(pin, 'click', function () {
+                        infobox.setOptions({visible: true});
+                    });
+                    map.entities.push(pin);
+                },
+                        // error messages when user denied to share location
+                                function (error) {
+                                    var x = document.getElementById("errorMessage");
+                                    switch (error.code) {
+                                        case error.PERMISSION_DENIED:
+                                            x.innerHTML = "User denied the request for Geolocation."
+                                            break;
+                                        case error.POSITION_UNAVAILABLE:
+                                            x.innerHTML = "Location information is unavailable."
+                                            break;
+                                        case error.TIMEOUT:
+                                            x.innerHTML = "The request to get user location timed out."
+                                            break;
+                                        case error.UNKNOWN_ERROR:
+                                            x.innerHTML = "An unknown error occurred."
+                                            break;
+
+
+                                    }
+                                }
+
+
+                        );
+                    }
+                    
+            // this function shows all centers on map with pushpin and infobox        
+            function loadAllCenters() {
+                loadMap();//to display current location
+                infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                    visible: false
+                });
+                infobox.setMap(map);
+                for (var i = 0; i < listRecs.length; i++) {
+                    var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                    var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                    //document.write(listRecs[i].name + "--------------");
+                    //metadata to display in infobox of each recreational center
+                    pins.metadata = {
+                        title: listRecs[i].name,
+                        description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+
+                    };
+
+                    Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                    map.entities.push(pins);
+                }
+
+
+            }
+            // function for printing infobox event handler
+            function pinsClicked(e) {
+                if (e.target.metadata) {
+                    infobox.setOptions({
+                        location: e.target.getLocation(),
+                        title: e.target.metadata.title,
+                        description: e.target.metadata.description + 
+                                "<br/><a href='https://bing.com/maps/default.aspx?q= " + e.target.metadata.title + "'>Bing Map</a>" + 
+                                "   <a href='http://dev.virtualearth.net/REST/v1/Locations?o=xml&q=" + e.target.metadata.title + "&key=AhIsv_BN4izs9jeBON-pH_xWOmckn0XZH22L46VTh5H1_E3ccPPxZ5mrpMccsN9f'>Lat/Lng</a>" + 
+                                "<img src='skates.jpg'/>",
+                        visible: true
+                    });
+                }
+
+            }
+            
+            //this function shows all centers of Hamilton city on map with pushpin and infobox      
+            function loadHamilton() {
+                loadMap();//to display current location
+                for (var i = 0; i < listRecs.length; i++) {
+                    infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                        visible: false
+                    });
+                    infobox.setMap(map);
+                    //document.write(listRecs[i].city);
+                    if (listRecs[i].city == "Hamilton") {
+                        //document.write("yes");
+                        var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                        var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                        pins.metadata = {
+                            title: listRecs[i].name,
+                            description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                    listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+                        };
+
+                        Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                        map.setView({center: locationOfCenters});
+                        map.entities.push(pins);
+                    }
+                }
+            }
+            
+            //this function shows all centers of Carlisle city on map with pushpin and infobox      
+            function loadCarlisle() {
+                loadMap();//to display current location
+                for (var i = 0; i < listRecs.length; i++) {
+                    infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                        visible: false
+                    });
+                    infobox.setMap(map);
+                    //document.write(listRecs[i].city);
+                    if (listRecs[i].city == "Carlisle") {
+                        //document.write("yes");
+                        var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                        var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                        pins.metadata = {
+                            title: listRecs[i].name,
+                            description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                    listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+                        };
+
+                        Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                        map.setView({center: locationOfCenters});
+                        map.entities.push(pins);
+                    }
+                }
+            }
+            
+            //this function shows all centers of Binbrook city on map with pushpin and infobox      
+            function loadBinbrook() {
+                loadMap();//to display current location
+                for (var i = 0; i < listRecs.length; i++) {
+                    infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                        visible: false
+                    });
+                    infobox.setMap(map);
+                    //document.write(listRecs[i].city);
+                    if (listRecs[i].city == "Binbrook") {
+                        //document.write("yes");
+                        var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                        var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                        pins.metadata = {
+                            title: listRecs[i].name,
+                            description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                    listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+                        };
+
+                        Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                        map.setView({center: locationOfCenters});
+                        map.entities.push(pins);
+                    }
+                }
+            }
+           
+            //this function shows all centers of Dundas city on map with pushpin and infobox      
+            function loadDundas() {
+                loadMap();//to display current location
+                for (var i = 0; i < listRecs.length; i++) {
+                    infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                        visible: false
+                    });
+                    infobox.setMap(map);
+                    //document.write(listRecs[i].city);
+                    if (listRecs[i].city == "Dundas") {
+                        //document.write("yes");
+                        var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                        var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                        pins.metadata = {
+                            title: listRecs[i].name,
+                            description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                    listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+                        };
+
+                        Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                        map.setView({center: locationOfCenters});
+                        map.entities.push(pins);
+                    }
+                }
+            }
+            
+            //this function shows all centers of Ancaster city on map with pushpin and infobox      
+            function loadAncaster() {
+                loadMap();//to display current location
+                for (var i = 0; i < listRecs.length; i++) {
+                    infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                        visible: false
+                    });
+                    infobox.setMap(map);
+                    //document.write(listRecs[i].city);
+                    if (listRecs[i].city == "Ancaster") {
+                        //document.write("yes");
+                        var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                        var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                        pins.metadata = {
+                            title: listRecs[i].name,
+                            description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                    listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+                        };
+
+                        Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                        map.setView({center: locationOfCenters});
+                        map.entities.push(pins);
+                    }
+                }
+            }
+            //this function shows all centers of Flamborough city on map with pushpin and infobox      
+            function loadFlamboroungh() {
+                loadMap();//to display current location
+
+                for (var i = 0; i < listRecs.length; i++) {
+                    infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                        visible: false
+                    });
+                    infobox.setMap(map);
+                    //document.write(listRecs[i].city);
+                    if (listRecs[i].city == "Flamborough") {
+                        //document.write("yes");
+                        var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                        var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                        pins.metadata = {
+                            title: listRecs[i].name,
+                            description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                    listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+                        };
+
+                        Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                        map.setView({center: locationOfCenters});
+                        map.entities.push(pins);
+                    }
+                }
+            }
+
+
+            //this function shows all centers of Stoney Creek city on map with pushpin and infobox      
+            function loadStoneyCreek() {
+                loadMap();//to display current location
+                for (var i = 0; i < listRecs.length; i++) {
+                    infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+                        visible: false
+                    });
+                    infobox.setMap(map);
+                    //document.write(listRecs[i].city);
+                    if (listRecs[i].city == "Stoney Creek") {
+                        //document.write("yes");
+                        var locationOfCenters = new Microsoft.Maps.Location(listRecs[i].latitude, listRecs[i].longitude);
+                        var pins = new Microsoft.Maps.Pushpin(locationOfCenters, null);
+                        pins.metadata = {
+                            title: listRecs[i].name,
+                            description: listRecs[i].address + "<br/>" + listRecs[i].city + " " +
+                                    listRecs[i].phone + "<br/>" + listRecs[i].latitude + "/" + listRecs[i].longitude
+
+                        };
+
+                        Microsoft.Maps.Events.addHandler(pins, 'click', pinsClicked);
+                        map.setView({center: locationOfCenters});
+                        map.entities.push(pins);
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body onload='loadMap();'>
+        <button type="button" class="allCenters" onclick='loadAllCenters()'>All</button>
+        <button type="button" onclick='loadCarlisle()'>Carlisle</button>
+        <button type="button" onclick='loadHamilton()'>Hamilton</button>
+        <button type="button" onclick='loadBinbrook()'>Binbrook</button>
+        <button type="button" onclick='loadDundas()'>Dundas</button>
+        <button type="button" onclick='loadAncaster()'>Ancaster</button>
+        <button type="button" onclick='loadFlamboroungh()'>Flamboroungh</button>
+        <button type="button" onclick='loadStoneyCreek()'>Stoney Creek</button>
+        <br/>
+        <br/>
+        <div id='myMap' style='width: 500px; height: 500px;'></div>
+        <br/>
+        <button type="button">Show JSON Data</button>
+        <div id='errorMessage'></div>
+    </body>
+</html>

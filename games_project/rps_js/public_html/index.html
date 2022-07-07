@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="js.js"></script>
+        <link rel="stylesheet" href="css.css">
+        <title>Assign 2</title>
+    </head>        
+    <body>
+    
+     <header class="header">
+			<div class="container">
+                            <table>
+                                <tr>
+                                    
+                                <td><div class="rock">Rock,</div> </td>
+                                <td> <div class="paper">paper,</div> </td>
+                                <td><div class="scissors">scissors </td> 
+                                           
+                                    
+                                </tr>
+                            </table>    
+                        </div>
+		</header>
+		<div class="main">
+			<div class="container">
+				<section class="content">
+					<button class="play rock" type="button" onclick="play('rock')"></button>
+					<button class="play paper" type="button" onclick="play('paper')"></button>
+					<button class="play scissors" type="button" onclick="play('scissors')"></button>
+				
+					<p><div id="player"></div> <div id="opponent"></div></p>
+					<h2 id="results"></h2>
+				</section>
+				<aside class="aside">
+					<div class="scorebox">
+						<h2>Score</h2>
+						<div class="score-num"><div id="wins">0</div> <br />wins</div>
+						<div class="score-divider"><div>-</div></div>
+						<div class="score-num"><div id="loses">0</div> <br />loses</div>
+					</div>
+					<button type="reset" id="reset" onclick="reset()">reset scores</button>
+				</aside>
+			</div>
+		</div>
+    </body>
+</html>    

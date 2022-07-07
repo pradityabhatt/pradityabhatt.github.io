@@ -1,0 +1,6 @@
+
+LIBRARY LOCATOR IMPROVEMENTS:
+
+I put footer for copyright information.
+I added addition infromation in  information window when i click on pwerticular libary pushpin like ranking and area of that particular library.
+I also add the route to particular library on map so we can know how to react at selected library.

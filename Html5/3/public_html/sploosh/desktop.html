@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sploosh - You can splash in sploosh!</title>
+<link rel="stylesheet" href="../css/main.css" > 
+<script src="../js/jquery-3.2.1.min.js"></script>
+<script>
+    //javascript function for table data that has page, screen and view port information
+    $(document).ready(function () {
+        function sizeInfo() {$("#tableInfo").html(
+                    '<tr><th>Page</th><td>' + $(document).width() + '</td><td>' + $(document).height() + '</td></tr>' + 
+                    '<tr><th>Screen</th><td>' + window.screen.width + '</td><td>' + window.screen.height + '</td></tr>' + 
+                    '<tr><th>ViewPort</th><td>' + $(window).width() + '</td><td>' + $(window).height() + '</td></tr>'
+                    );}
+        sizeInfo();
+        $(window).resize(function () {
+            sizeInfo();
+        });
+    });
+</script> 
+</head>
+<body>
+<div id="header">
+	<h1><a href="index.html">Splöösh - Desktop</a></h1>
+	 
+</div>
+<div id="menu">
+	<ul>
+		<li class="active"><a href="mobile.html" accesskey="1" title="">Homepage</a></li>
+		<li><a href="desktop.html" accesskey="2" title="">splöösh Desktop</a></li>
+		<li><a href="mobile.html" accesskey="3" title="">My Photos</a></li>
+		<li><a href="mobile.html" accesskey="4" title="">My Bookmarks</a></li>
+		<li><a href="mobile.html" accesskey="5" title="">Contact Me</a></li>
+	</ul>
+</div>
+<div style="clear: both;"></div>
+<div id="content">
+	<div id="colAd"> <a href="#"><img src="../img/ad_120x600.jpg" alt="" width="120" height="600" /></a> </div>
+	<div id="colContent">
+		<h2> Splöösh!</h2>
+		<p><em><strong>Splöösh</strong></em> onec nulla est, laoreet quis, pellentesque in, congue in, dui. Nunc rhoncus placerat augue. Donec justo odio, eleifend varius, volutpat venenatis, sagittis ut, orci. </p>
+		<h2>Viewport dimensions:</h2>
+                <table  style="font-size: 1.5em;">
+                    <thead>
+                        <tr><th></th><th>Width</th><th>Height</th></tr>
+                    </thead>
+                    <tbody id="tableInfo"></tbody>
+                </table>  
+                <p id="desc">
+                         
+                </p> 
+        <p>Sed vestibulum blandit nisl. Quisque elementum convallis purus. Quisque pellentesque semper massa:</p>
+		<ol>
+			<li><a href="#">Suspendisse quis gravida massa felis</a></li>
+			<li><a href="#">Vivamus sagittis bibendum erat</a></li>
+			<li><a href="#">Nullam et orci in erat viverra ornare</a></li>
+			<li><a href="#">Suspendisse quis gravida massa felis</a></li>
+			<li><a href="#">Curabitur malesuada turpis nec ante</a></li>
+		</ol>
+		<h3>Lorem Ipsum Dolore </h3>
+		<p>Aliquam gravida massa eu arcu. Fusce mollis tristique sem. Sed eu eros imperdiet eros interdum blandit. Vivamus sagittis bibendum erat. Curabitur malesuada turpis nec.</p>
+		<p><a href="#">Pellentesque sed vestibulum blandit&#8230;</a></p>
+	</div>
+	
+    <div id="colSidebar">
+		<h2>Recent Updates</h2>
+		<h3>Etiam suscipit et</h3>
+		<p>Rhoncus ac, lacinia, nisl. Aliquam gravida massa eu arcu. <a href="#">More&#8230;</a></p>
+		<h3>Nunc pellentesque</h3>
+		<p>Sed vestibulum blandit nisl. Quisque elementum convallis purus. Suspendisse potenti. Donec nulla est, laoreet quis, pellentesque in. <a href="#">More&#8230;</a></p>
+		<h3>Suspendis potenti</h3>
+		<p>Donec nulla est, laoreet quis, pellentesque in, congue in, dui. Nunc rhoncus placerat augue. Donec justo odio, eleifend varius, volutpat venenatis, sagittis ut, orci. <a href="#">More&#8230;</a></p>
+		<p><a href="#"><img src="../img/img5.jpg" alt="" width="160" height="120" /></a></p>
+	</div>
+	<div style="clear: both;"></div>
+</div>
+<div id="footer">
+	<p>Copyright splöösh.com Contact Legal Info Site Map Email</p>
+</div>
+</body>
+</html>
