@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generational Family Tree</title>
+    <style>
+        :root {
+            /* Dark Theme Defaults (Now Default) */
+            --bg-color: #121212;
+            --line-color: #555;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --primary: #5dade2; 
+            --hover: #3498db;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --modal-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+            --input-border: #444;
+            --shadow: rgba(0,0,0,0.5);
+            --scrollbar-thumb: #444;
+            --scrollbar-track: #2d2d2d;
+        }
+
+        /* Light Theme Overrides */
+        [data-theme="light"] {
+            --bg-color: #f4f7f6;
+            --line-color: #99a;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --primary: #3498db;
+            --hover: #2980b9;
+            --modal-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #ccc;
+            --shadow: rgba(0,0,0,0.1);
+            --scrollbar-thumb: #ccc;
+            --scrollbar-track: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Controls */
+        #controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px var(--shadow);
+            display: flex;
+            gap: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: var(--primary);
+            color: white; /* Text stays white on buttons usually */
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--hover);
+        }
+
+        button.secondary {
+            background-color: #95a5a6;
+        }
+
+        /* Info Pane */
+        #info-pane {
+            position: fixed;
+            top: 80px; /* Below controls */
+            left: 20px;
+            width: 260px;
+            max-height: calc(100vh - 100px); /* Limit height to prevent overflow */
+            overflow-y: auto; /* Enable scrolling */
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px var(--shadow);
+            z-index: 1000;
+            font-size: 0.95em;
+            line-height: 1.5;
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            border: 1px solid var(--line-color);
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+
+        /* Custom Scrollbar for Webkit (Chrome/Safari) */
+        #info-pane::-webkit-scrollbar {
+            width: 8px;
+        }
+        #info-pane::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 4px;
+        }
+        #info-pane::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb);
+            border-radius: 4px;
+        }
+
+        #info-pane h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: var(--primary);
+            border-bottom: 2px solid var(--line-color);
+            padding-bottom: 5px;
+        }
+
+        /* Collapsible Styles */
+        .collapsible {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 0.95em;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-top: 8px;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .active, .collapsible:hover {
+            background-color: var(--line-color); 
+            color: var(--text-main);
+        }
+        
+        .collapsible:after {
+            content: '+'; 
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .active:after {
+            content: "-"; 
+        }
+
+        .content {
+            padding: 0 10px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: var(--card-bg);
+            border-left: 3px solid var(--line-color);
+            opacity: 0.9;
+        }
+        
+        .content p {
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        /* Viewport & Container */
+        #viewport {
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+        }
+
+        #viewport:active {
+            cursor: grabbing;
+        }
+
+        #tree-container {
+            position: absolute;
+            transform-origin: top center;
+            padding-bottom: 100px;
+            transition: transform 0.1s; /* Smooth zoom */
+        }
+
+        /* SVG Overlay for Lines */
+        #svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        path {
+            transition: stroke 0.3s;
+        }
+
+        /* Tree Nodes */
+        .node-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .couple-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .person-card {
+            background: var(--card-bg);
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
+            padding: 10px 15px;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .person-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .person-card.female {
+            border-bottom: 3px solid #e84393;
+        }
+
+        .person-card.male {
+            border-bottom: 3px solid #0984e3;
+        }
+
+        .name {
+            font-weight: bold;
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .title {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        /* Badge Styling: Default is Dark Mode Style */
+        .gen-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #5dade2; /* Dark mode highlight */
+            color: #121212;
+            font-weight: bold;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        /* Light Mode Override for Badge */
+        [data-theme="light"] .gen-badge {
+            background: #2c3e50;
+            color: white;
+            font-weight: normal;
+        }
+
+        /* Modal Base Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-box {
+            background: var(--modal-bg);
+            color: var(--text-main);
+            padding: 25px;
+            border-radius: 8px;
+            width: 300px;
+            box-shadow: 0 10px 25px var(--shadow);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #edit-modal h2 { margin-top: 0; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--text-muted); }
+        
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 8px; 
+            box-sizing: border-box; 
+            border: 1px solid var(--input-border); 
+            background: var(--input-bg);
+            color: var(--text-main);
+            border-radius: 4px; 
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid var(--line-color);
+            padding-top: 15px;
+        }
+
+        /* Custom Dialog Styles */
+        #dialog-content {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: var(--text-main);
+        }
+        
+        .dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-cancel { background-color: #95a5a6; }
+        .btn-confirm { background-color: var(--danger); }
+        .btn-ok { background-color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <button onclick="zoomIn()">Zoom (+)</button>
+        <button onclick="zoomOut()">Zoom (-)</button>
+        <button class="secondary" onclick="resetView()">Reset View</button>
+        <!-- Button text starts as Light Mode because default is Dark -->
+        <button class="secondary" id="btn-theme" onclick="toggleTheme()">Light Mode</button>
+        <button class="secondary" onclick="exportData()">Save JSON</button>
+        <button class="secondary" onclick="clearData()" style="background-color: #c0392b;">Clear Data</button>
+    </div>
+
+    <div id="info-pane">
+        <h3>Family History</h3>
+        <p>In Samvat 1605 (approx. 1549 AD), Ravshri Khengarji I of Bhuj invited Nagar Bhatt Gopalji of Mehsana to the city with great honor, bringing him seated on the howdah of an elephant. 
+            Bhatt Gopalji was an expert in Vedic rituals and worship. Although they were originally <strong>"Vyas"</strong> from Visnagar, they became known as <strong>"Bhatt"</strong> because their lineage consisted of 30 families dedicated to conducting Pooja (worship). 
+            Over time, the family expanded from priestly duties into trade and agriculture.</p>
+        
+        <button class="collapsible">Administration and Temple duties</button>
+        <div class="content">
+            <p>Administration and Temple Duties As administrators of the state, family members like Bhatt Mahendraray, his grandfather Bhatt Gulabshankar Pranshankar, and Bhatt Ambalal Mansubram handled significant responsibilities. They held farmlands in Padana, Paloti, Khariohar, Mithi Rohar, and Naranpar. 
+                They also held the hereditary right to perform the Chadipath at the Shri Ashapura Mata temple. In 1947, during the independence movement, they served as freedom fighters. 
+                There is a historical anecdote that when the Sumara tribe attacked Bhuj, the family helped protect the idol of Ashapura Mata by hiding it in a secret gum-cellar and replacing it with another idol until the danger passed.
+            </p>
+        </div>
+        
+        <button class="collapsible">Heading 2</button>
+        <div class="content">
+            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        </div>
+    </div>
+
+    <div id="viewport">
+        <div id="tree-container">
+            <svg id="svg-layer"></svg>
+            <div id="node-layer"></div>
+        </div>
+    </div>
+
+    <!-- Edit/Action Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="edit-modal" class="modal-box">
+            <h2 id="modal-title">Edit Member</h2>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="input-name" placeholder="Enter name">
+            </div>
+
+            <!-- New Gender Selection (Hidden by default) -->
+            <div class="form-group" id="gender-group" style="display:none;">
+                <label>Gender</label>
+                <select id="input-gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+            
+            <div class="action-btn-group">
+                <button id="btn-save" onclick="submitForm()">Save</button>
+                <button class="secondary" onclick="closeModal()">Cancel</button>
+            </div>
+
+            <div id="family-actions">
+                <div style="margin-top: 20px; font-size: 0.9em; color: var(--text-muted); border-bottom: 1px solid var(--line-color); padding-bottom: 5px;">Family Actions</div>
+                
+                <div class="action-btn-group">
+                    <button onclick="prepareAddChild()" style="background-color: #27ae60;">Add Child</button>
+                    <button id="btn-add-spouse" onclick="prepareAddSpouse()" style="background-color: #8e44ad;">Add Spouse</button>
+                    <button id="btn-delete" onclick="tryDeleteNode()" style="background-color: #c0392b;">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dialog Modal (Alert/Confirm Replacement) -->
+    <div id="dialog-overlay" class="modal-overlay" style="z-index: 3000;">
+        <div class="modal-box" style="width: 250px;">
+            <p id="dialog-content"></p>
+            <div class="dialog-buttons">
+                <button id="btn-dialog-cancel" class="btn-cancel" style="display:none;">Cancel</button>
+                <button id="btn-dialog-ok" class="btn-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Custom Dialog System ---
+        
+        const dialogOverlay = document.getElementById('dialog-overlay');
+        const dialogContent = document.getElementById('dialog-content');
+        const btnDialogOk = document.getElementById('btn-dialog-ok');
+        const btnDialogCancel = document.getElementById('btn-dialog-cancel');
+        let dialogCallback = null;
+
+        function showMessage(msg) {
+            dialogContent.innerText = msg;
+            btnDialogCancel.style.display = 'none';
+            btnDialogOk.className = 'btn-ok';
+            btnDialogOk.innerText = "OK";
+            btnDialogOk.onclick = () => {
+                dialogOverlay.style.display = 'none';
+            };
+            dialogOverlay.style.display = 'flex';
+        }
+
+        function showConfirm(msg, onConfirm) {
+            dialogContent.innerText = msg;
+            btnDialogCancel.style.display = 'inline-block';
+            btnDialogCancel.onclick = () => {
+                dialogOverlay.style.display = 'none';
+            };
+            
+            btnDialogOk.className = 'btn-confirm';
+            btnDialogOk.innerText = "Yes";
+            btnDialogOk.onclick = () => {
+                dialogOverlay.style.display = 'none';
+                if(onConfirm) onConfirm();
+            };
+            
+            dialogOverlay.style.display = 'flex';
+        }
+
+        // --- Theme System (Updated for Dark Default) ---
+        
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('btn-theme');
+            const current = body.getAttribute('data-theme');
+            
+            // Logic inverted: 'light' is the override now
+            if (current === 'light') {
+                body.removeAttribute('data-theme'); // Go back to Default (Dark)
+                btn.innerText = "Light Mode";
+            } else {
+                body.setAttribute('data-theme', 'light'); // Set to Light
+                btn.innerText = "Dark Mode";
+            }
+            renderTree(); // Re-render to update SVG stroke colors if needed
+        }
+
+        // --- Data Structure ---
+        
+        function createInitialData() {
+            // Check local storage first
+            const storedData = localStorage.getItem('familyTreeData_v1');
+            if (storedData) {
+                try {
+                    return JSON.parse(storedData);
+                } catch (e) {
+                    console.error("Error parsing saved data", e);
+                }
+            }
+
+            // Default if no data found
+            let root = {
+                id: crypto.randomUUID(),
+                name: "Root Ancestor",
+                gender: "male",
+                generation: 1,
+                spouse: null,
+                children: []
+            };
+            return root;
+        }
+
+        let treeData = createInitialData();
+        let selectedNodeId = null;
+
+        function saveData() {
+            localStorage.setItem('familyTreeData_v1', JSON.stringify(treeData));
+        }
+
+        function clearData() {
+            if(confirm("This will delete all saved data and reset the tree to the start. Are you sure?")) {
+                localStorage.removeItem('familyTreeData_v1');
+                location.reload();
+            }
+        }
+
+        // --- Viewport State ---
+        let state = {
+            scale: 1,
+            panning: false,
+            startX: 0,
+            startY: 0,
+            translateX: window.innerWidth / 2 - 75,
+            translateY: 50
+        };
+
+        const NODE_WIDTH = 150;
+        const GAP_X = 50;
+        const GAP_Y = 100;
+
+        // --- Layout & Rendering ---
+
+        function calculateLayout(node) {
+            let width = 0;
+            if (node.children.length > 0) {
+                node.children.forEach(child => {
+                    child.width = calculateLayout(child);
+                });
+                width = node.children.reduce((acc, c) => acc + c.width, 0) + (node.children.length - 1) * GAP_X;
+            } else {
+                width = NODE_WIDTH;
+            }
+            if (node.spouse) {
+                width = Math.max(width, NODE_WIDTH * 2 + 20);
+            }
+            return width;
+        }
+
+        function assignCoordinates(node, x, y) {
+            node.x = x;
+            node.y = y;
+            let currentX = x;
+            let childrenTotalWidth = node.children.reduce((acc, c) => acc + c.width, 0) + Math.max(0, node.children.length - 1) * GAP_X;
+            
+            if (childrenTotalWidth < node.width) {
+                currentX += (node.width - childrenTotalWidth) / 2;
+            }
+
+            node.children.forEach(child => {
+                assignCoordinates(child, currentX, y + GAP_Y);
+                currentX += child.width + GAP_X;
+            });
+        }
+
+        function renderTree() {
+            const container = document.getElementById('node-layer');
+            const svg = document.getElementById('svg-layer');
+            container.innerHTML = '';
+            svg.innerHTML = '';
+
+            // Get current line color based on theme
+            const lineColor = getComputedStyle(document.body).getPropertyValue('--line-color').trim();
+
+            treeData.width = calculateLayout(treeData);
+            assignCoordinates(treeData, 0, 0);
+
+            function drawNode(node) {
+                let centerX = node.x + node.width / 2;
+                
+                const el = document.createElement('div');
+                el.className = 'node-wrapper';
+                el.style.left = `${node.x}px`;
+                el.style.top = `${node.y}px`;
+                el.style.width = `${node.width}px`;
+
+                let content = `<div class="couple-wrapper">`;
+                
+                // Primary
+                content += `
+                    <div class="person-card ${node.gender}" onclick="openModal('${node.id}')">
+                        <span class="gen-badge">Gen ${node.generation}</span>
+                        <span class="name">${node.name}</span>
+                        
+                    </div>
+                `;
+
+            //  ${!node.spouse ? '<span class="title">Single</span>' : ''}  -- add to line 625 if needed
+
+                // Spouse
+                if (node.spouse) {
+                    content += `
+                        <div class="person-card ${node.spouse.gender === 'male' ? 'male' : 'female'}" onclick="openModal('${node.id}', true)">
+                            <span class="gen-badge">Gen ${node.generation}</span>
+                            <span class="name">${node.spouse.name}</span>
+                            
+                        </div>
+                    `;
+                }
+            // <span class="title">Spouse</span>  -- add to line 637 if needed
+                content += `</div>`;
+                el.innerHTML = content;
+                container.appendChild(el);
+
+                // Lines
+                if (node.children.length > 0) {
+                    const startX = centerX;
+                    const startY = node.y + 60;
+                    const midY = startY + 20;
+
+                    node.children.forEach(child => {
+                        const childCenterX = child.x + child.width / 2;
+                        const childTopY = child.y;
+                        const path = `M ${startX} ${startY} V ${midY} H ${childCenterX} V ${childTopY}`;
+                        
+                        const pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        pathEl.setAttribute("d", path);
+                        pathEl.setAttribute("stroke", lineColor);
+                        pathEl.setAttribute("stroke-width", "2");
+                        pathEl.setAttribute("fill", "none");
+                        svg.appendChild(pathEl);
+                    });
+                }
+                node.children.forEach(drawNode);
+            }
+
+            drawNode(treeData);
+            
+            const treeW = treeData.width;
+            const treeH = 15 * GAP_Y + 200; 
+            svg.setAttribute('width', Math.max(treeW, window.innerWidth));
+            svg.setAttribute('height', treeH);
+            container.style.width = `${Math.max(treeW, window.innerWidth)}px`;
+            container.style.height = `${treeH}px`;
+        }
+
+        // --- Data Helpers ---
+
+        function findNode(id, node = treeData) {
+            if (node.id === id) return node;
+            for (let child of node.children) {
+                let found = findNode(id, child);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        function findParent(id, node = treeData) {
+            for (let child of node.children) {
+                if (child.id === id) return node;
+                let found = findParent(id, child);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        // --- Modal & Action Logic ---
+
+        let currentMode = 'edit';
+        let isEditingSpouse = false;
+
+        function openModal(id, editSpouse = false) {
+            selectedNodeId = id;
+            isEditingSpouse = editSpouse;
+            currentMode = 'edit';
+            
+            const node = findNode(id);
+            if (!node) return;
+
+            const modal = document.getElementById('modal-overlay');
+            const nameInput = document.getElementById('input-name');
+            const title = document.getElementById('modal-title');
+            const spouseBtn = document.getElementById('btn-add-spouse');
+            const deleteBtn = document.getElementById('btn-delete');
+            const genderGroup = document.getElementById('gender-group');
+            const familyActions = document.getElementById('family-actions');
+            const saveBtn = document.getElementById('btn-save');
+
+            genderGroup.style.display = 'none';
+            familyActions.style.display = 'block';
+            saveBtn.innerText = "Save Name";
+
+            if (editSpouse) {
+                title.innerText = "Edit Spouse";
+                nameInput.value = node.spouse.name;
+                spouseBtn.style.display = 'none'; 
+                deleteBtn.innerText = "Remove Spouse";
+            } else {
+                title.innerText = "Edit Member";
+                nameInput.value = node.name;
+                spouseBtn.style.display = node.spouse ? 'none' : 'inline-block';
+                deleteBtn.innerText = "Delete Member";
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+
+        function prepareAddChild() {
+            currentMode = 'add-child';
+            document.getElementById('modal-title').innerText = "Add New Child";
+            document.getElementById('input-name').value = "";
+            document.getElementById('gender-group').style.display = 'block';
+            document.getElementById('family-actions').style.display = 'none';
+            document.getElementById('btn-save').innerText = "Add Child";
+            document.getElementById('input-gender').value = 'male';
+        }
+
+        function prepareAddSpouse() {
+            const node = findNode(selectedNodeId);
+            if(node.spouse) {
+                showMessage("This member already has a spouse.");
+                return;
+            }
+
+            currentMode = 'add-spouse';
+            document.getElementById('modal-title').innerText = "Add Spouse";
+            document.getElementById('input-name').value = "";
+            document.getElementById('gender-group').style.display = 'block';
+            document.getElementById('family-actions').style.display = 'none';
+            document.getElementById('btn-save').innerText = "Add Spouse";
+            const opposite = node.gender === 'male' ? 'female' : 'male';
+            document.getElementById('input-gender').value = opposite;
+        }
+
+        function submitForm() {
+            const name = document.getElementById('input-name').value;
+            if (!name.trim()) {
+                showMessage("Name is required");
+                return;
+            }
+
+            const gender = document.getElementById('input-gender').value;
+            const node = findNode(selectedNodeId);
+
+            if (currentMode === 'edit') {
+                if (isEditingSpouse) {
+                    node.spouse.name = name;
+                } else {
+                    node.name = name;
+                }
+            } 
+            else if (currentMode === 'add-child') {
+                const newChild = {
+                    id: crypto.randomUUID(),
+                    name: name,
+                    gender: gender, 
+                    generation: node.generation + 1,
+                    spouse: null,
+                    children: []
+                };
+                node.children.push(newChild);
+            }
+            else if (currentMode === 'add-spouse') {
+                node.spouse = {
+                    name: name,
+                    gender: gender
+                };
+            }
+            
+            saveData(); // Save changes
+            renderTree();
+            closeModal();
+        }
+
+        function tryDeleteNode() {
+            // Case 1: Removing Spouse
+            if (isEditingSpouse) {
+                showConfirm("Remove this spouse?", () => {
+                    const node = findNode(selectedNodeId);
+                    if(node) {
+                        node.spouse = null;
+                        saveData(); // Save changes
+                        renderTree();
+                        closeModal();
+                    }
+                });
+                return;
+            }
+
+            // Case 2: Root check
+            if(selectedNodeId === treeData.id) {
+                showMessage("Cannot delete the root ancestor!");
+                return;
+            }
+
+            // Case 3: Deleting Member + Children
+            showConfirm("Are you sure? This will delete this person AND all their descendants.", () => {
+                const parent = findParent(selectedNodeId);
+                if(parent) {
+                    parent.children = parent.children.filter(c => c.id !== selectedNodeId);
+                    saveData(); // Save changes
+                    renderTree();
+                    closeModal();
+                }
+            });
+        }
+
+        // --- Pan and Zoom ---
+
+        const viewport = document.getElementById('viewport');
+        const treeContainer = document.getElementById('tree-container');
+
+        function updateTransform() {
+            treeContainer.style.transform = `translate(${state.translateX}px, ${state.translateY}px) scale(${state.scale})`;
+        }
+
+        viewport.addEventListener('mousedown', (e) => {
+            state.panning = true;
+            state.startX = e.clientX - state.translateX;
+            state.startY = e.clientY - state.translateY;
+            viewport.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!state.panning) return;
+            e.preventDefault();
+            state.translateX = e.clientX - state.startX;
+            state.translateY = e.clientY - state.startY;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            state.panning = false;
+            viewport.style.cursor = 'grab';
+        });
+
+        function zoomIn() {
+            state.scale += 0.1;
+            updateTransform();
+        }
+
+        function zoomOut() {
+            state.scale = Math.max(0.1, state.scale - 0.1);
+            updateTransform();
+        }
+
+        function resetView() {
+            state.scale = 1;
+            state.translateX = window.innerWidth / 2 - (treeData.width/2);
+            state.translateY = 50;
+            updateTransform();
+        }
+        
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(treeData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "family_tree.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        // --- Init ---
+        // Close modals if clicking outside
+        document.getElementById('modal-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-overlay') closeModal();
+        });
+
+        renderTree();
+        
+        // Center view
+        setTimeout(() => {
+            state.translateX = window.innerWidth / 2 - (treeData.width / 2);
+            updateTransform();
+        }, 100);
+
+        // --- Collapsible Logic ---
+        const coll = document.getElementsByClassName("collapsible");
+        for (let i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                const content = this.nextElementSibling;
+                if (content.style.maxHeight){
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                } 
+            });
+        }
+
+    </script>
+</body>
+</html>
