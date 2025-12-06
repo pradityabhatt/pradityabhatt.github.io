@@ -817,14 +817,12 @@
                     <div class="person-card ${node.gender}" onclick="openModal('${node.id}')">
                         <span class="gen-badge">Gen ${node.generation}</span>
                         <span class="name">${node.name}</span>
-                        ${!node.spouse ? '<span class="title">Single</span>' : ''}
                     </div>`;
                 
                 if (node.spouse) {
                     content += `<div class="person-card ${node.spouse.gender === 'male' ? 'male' : 'female'}" onclick="openModal('${node.id}', true)">
                         <span class="gen-badge">Gen ${node.generation}</span>
                         <span class="name">${node.spouse.name}</span>
-                        <span class="title">Spouse</span>
                     </div>`;
                 }
                 content += `</div>`;
