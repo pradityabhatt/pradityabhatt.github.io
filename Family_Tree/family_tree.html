@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Generational Family Tree</title>
     <style>
         :root {
@@ -52,6 +52,7 @@
             display: flex;
             flex-direction: column;
             transition: background-color 0.3s, color 0.3s;
+            touch-action: none; /* Prevent browser zooming/scrolling */
         }
 
         /* Controls */
@@ -80,6 +81,7 @@
             color: white;
             font-weight: 600;
             transition: background 0.2s;
+            font-size: 14px;
         }
 
         button:hover {
@@ -175,6 +177,7 @@
             overflow: hidden;
             position: relative;
             cursor: grab;
+            touch-action: none;
         }
 
         #viewport:active { cursor: grabbing; }
@@ -325,6 +328,44 @@
         .btn-confirm { background-color: var(--danger); }
         .btn-ok { background-color: var(--primary); }
 
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            #controls {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                width: auto;
+                max-width: none;
+                justify-content: space-between;
+            }
+            
+            button {
+                padding: 10px 14px; /* Larger touch target */
+                flex-grow: 1;
+                text-align: center;
+            }
+
+            #info-pane {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                border-radius: 12px 12px 0 0;
+                border-bottom: none;
+                border-left: none;
+                border-right: none;
+                box-sizing: border-box;
+                max-height: 40vh; /* Drawer style */
+                z-index: 1001;
+                border-top: 3px solid var(--primary);
+            }
+
+            .modal-box {
+                width: 90% !important;
+                max-width: 350px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -336,25 +377,21 @@
         <button class="secondary" id="btn-theme" onclick="toggleTheme()">Light Mode</button>
         
         <!-- NEW BUTTON FOR SAVING CODE -->
-        <button class="important" onclick="showExportModal()">Get Code for File</button>
+        <button class="important" onclick="showExportModal()">Get Code</button>
         
-        <button class="secondary" onclick="clearData()" style="background-color: #c0392b;">Clear Data</button>
+        <button class="secondary" onclick="clearData()" style="background-color: #c0392b;">Clear</button>
     </div>
 
     <div id="info-pane">
         <h3>Family History</h3>
-        <p>IIn Samvat 1605 (approx. 1549 AD), Ravshri Khengarji I of Bhuj invited Nagar Bhatt Gopalji of Mehsana to the city with great honor, bringing him seated on the howdah of an elephant.
-
-            Bhatt Gopalji was an expert in Vedic rituals and worship. Although they were originally <strong>"Vyas"</strong> from Visnagar, they became known as <strong>"Bhatt"</strong> because their lineage consisted of 30 families dedicated to conducting Pooja (worship).
-
+        <p>In Samvat 1605 (approx. 1549 AD), Ravshri Khengarji I of Bhuj invited Nagar Bhatt Gopalji of Mehsana to the city with great honor, bringing him seated on the howdah of an elephant. 
+            Bhatt Gopalji was an expert in Vedic rituals and worship. Although they were originally <strong>"Vyas"</strong> from Visnagar, they became known as <strong>"Bhatt"</strong> because their lineage consisted of 30 families dedicated to conducting Pooja (worship). 
             Over time, the family expanded from priestly duties into trade and agriculture.</p>
         
         <button class="collapsible">Administration and Temple duties</button>
         <div class="content">
-            <p>Administration and Temple Duties As administrators of the state, family members like Bhatt Mahendraray, his grandfather Bhatt Gulabshankar Pranshankar, and Bhatt Ambalal Mansubram handled significant responsibilities. They held farmlands in Padana, Paloti, Khariohar, Mithi Rohar, and Naranpar.
-
-                They also held the hereditary right to perform the Chadipath at the Shri Ashapura Mata temple. In 1947, during the independence movement, they served as freedom fighters.
-
+            <p>Administration and Temple Duties As administrators of the state, family members like Bhatt Mahendraray, his grandfather Bhatt Gulabshankar Pranshankar, and Bhatt Ambalal Mansubram handled significant responsibilities. They held farmlands in Padana, Paloti, Khariohar, Mithi Rohar, and Naranpar. 
+                They also held the hereditary right to perform the Chadipath at the Shri Ashapura Mata temple. In 1947, during the independence movement, they served as freedom fighters. 
                 There is a historical anecdote that when the Sumara tribe attacked Bhuj, the family helped protect the idol of Ashapura Mata by hiding it in a secret gum-cellar and replacing it with another idol until the danger passed.</p>
         </div>
         
@@ -825,12 +862,14 @@
                     <div class="person-card ${node.gender}" onclick="openModal('${node.id}')">
                         <span class="gen-badge">Gen ${node.generation}</span>
                         <span class="name">${node.name}</span>
+                        ${!node.spouse ? '<span class="title">Single</span>' : ''}
                     </div>`;
                 
                 if (node.spouse) {
                     content += `<div class="person-card ${node.spouse.gender === 'male' ? 'male' : 'female'}" onclick="openModal('${node.id}', true)">
                         <span class="gen-badge">Gen ${node.generation}</span>
                         <span class="name">${node.spouse.name}</span>
+                        <span class="title">Spouse</span>
                     </div>`;
                 }
                 content += `</div>`;
@@ -974,9 +1013,32 @@
         const treeContainer = document.getElementById('tree-container');
         function updateTransform() { treeContainer.style.transform = `translate(${state.translateX}px, ${state.translateY}px) scale(${state.scale})`; }
 
+        // Mouse Events
         viewport.addEventListener('mousedown', (e) => { state.panning = true; state.startX = e.clientX - state.translateX; state.startY = e.clientY - state.translateY; viewport.style.cursor = 'grabbing'; });
         window.addEventListener('mousemove', (e) => { if (!state.panning) return; e.preventDefault(); state.translateX = e.clientX - state.startX; state.translateY = e.clientY - state.startY; updateTransform(); });
         window.addEventListener('mouseup', () => { state.panning = false; viewport.style.cursor = 'grab'; });
+
+        // Touch Events (Mobile)
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                state.panning = true;
+                state.startX = e.touches[0].clientX - state.translateX;
+                state.startY = e.touches[0].clientY - state.translateY;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!state.panning || e.touches.length !== 1) return;
+            e.preventDefault(); 
+            state.translateX = e.touches[0].clientX - state.startX;
+            state.translateY = e.touches[0].clientY - state.startY;
+            updateTransform();
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => {
+            state.panning = false;
+        });
+
         function zoomIn() { state.scale += 0.1; updateTransform(); }
         function zoomOut() { state.scale = Math.max(0.1, state.scale - 0.1); updateTransform(); }
         function resetView() { state.scale = 1; state.translateX = window.innerWidth / 2 - (treeData.width/2); state.translateY = 50; updateTransform(); }
