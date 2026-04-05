@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description"
+    content="Interactive generational family tree tracing the Maharaja Family lineage spanning 8 generations.">
+  <title>Maharaja Family Tree</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- Controls Toolbar -->
+  <div id="controls">
+    <button onclick="zoomIn()" title="Zoom In (+ key)"><span class="btn-icon">🔍</span><span
+        class="btn-label">+</span></button>
+    <button onclick="zoomOut()" title="Zoom Out (- key)"><span class="btn-icon">🔍</span><span
+        class="btn-label">−</span></button>
+    <button class="secondary" onclick="resetView()" title="Reset View (R key)"><span class="btn-icon">↻</span><span
+        class="btn-label">Reset</span></button>
+    <div class="divider"></div>
+    <button class="secondary" id="btn-theme" onclick="toggleTheme()" title="Toggle Theme"><span
+        class="btn-icon">☀️</span><span class="btn-label">Light</span></button>
+    <button class="important" onclick="showExportModal()" title="Export Tree Data"><span class="btn-icon">📋</span><span
+        class="btn-label">Get Code</span></button>
+    <button class="secondary" onclick="clearData()"
+      style="background: linear-gradient(135deg, #e74c3c, #c0392b); border: none; color: white;"
+      title="Clear Local Data"><span class="btn-icon">🗑</span><span class="btn-label">Clear</span></button>
+    <div class="divider"></div>
+    <div class="search-wrapper">
+      <span class="search-icon">🔎</span>
+      <input type="text" id="search-input" placeholder="Search names... (/ key)" oninput="onSearchInput(event)">
+      <button id="search-clear" onclick="clearSearch()" title="Clear search">✕</button>
+    </div>
+  </div>
+
+  <!-- Sidebar Toggle -->
+  <button id="sidebar-toggle" class="shifted" onclick="toggleSidebar()" title="Toggle Sidebar">‹</button>
+
+  <!-- Info Pane -->
+  <div id="info-pane">
+    <h3>Family History</h3>
+    <p>In the 19th century Chimanlal Maharaja established the hariharlaji temple in Visnagar after Lord Hariharlaji
+      appeared in his dream.
+      appeared in his dream and asked him to fetch his idol out of a well in the nearby village of Kansa.
+    </p>
+
+    <button class="collapsible">Additional History</button>
+    <div class="content">
+      <p>Additional historical information goes here.</p>
+    </div>
+  </div>
+
+  <!-- Tree Viewport -->
+  <div id="viewport">
+    <div id="tree-container">
+      <svg id="svg-layer"></svg>
+      <div id="node-layer"></div>
+    </div>
+  </div>
+
+  <!-- Edit/Action Modal -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div id="edit-modal" class="modal-box">
+      <h2 id="modal-title">Edit Member</h2>
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="input-name" placeholder="Enter name">
+      </div>
+      <div class="form-group" id="gender-group" style="display:none;">
+        <label>Gender</label>
+        <select id="input-gender">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="action-btn-group">
+        <button id="btn-save" onclick="submitForm()">Save</button>
+        <button class="secondary" onclick="closeModal()">Cancel</button>
+      </div>
+      <div id="family-actions">
+        <div
+          style="margin-top: 20px; font-size: 0.82em; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase;">
+          Family Actions</div>
+        <div class="action-btn-group">
+          <button onclick="prepareAddChild()" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">Add
+            Child</button>
+          <button id="btn-add-spouse" onclick="prepareAddSpouse()"
+            style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">Add Spouse</button>
+          <button id="btn-delete" onclick="tryDeleteNode()"
+            style="background: linear-gradient(135deg, #e74c3c, #c0392b);">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Code Modal -->
+  <div id="export-modal-overlay" class="modal-overlay">
+    <div class="modal-box" style="width: 420px;">
+      <h2 style="font-family: 'Playfair Display', serif; margin: 0 0 15px 0;">Save to File</h2>
+      <p style="font-size:0.85em; margin-bottom:12px; color:var(--text-muted); line-height: 1.7;">
+        1. Copy the code below.<br>
+        2. Open this HTML file in a text editor.<br>
+        3. Find the line <code
+          style="background:var(--input-bg); padding:2px 6px; border-radius:4px;">const permanentTreeData = null;</code><br>
+        4. Replace <code style="background:var(--input-bg); padding:2px 6px; border-radius:4px;">null</code> with the
+        copied text.<br>
+        5. Save the HTML file.
+      </p>
+      <textarea id="export-text" class="export-textarea" readonly></textarea>
+      <div class="dialog-buttons">
+        <button onclick="copyToClipboard()"><span class="btn-icon">📋</span> Copy to Clipboard</button>
+        <button class="secondary" onclick="closeExportModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Dialog Modal -->
+  <div id="dialog-overlay" class="modal-overlay" style="z-index: 3000;">
+    <div class="modal-box" style="width: 280px;">
+      <p id="dialog-content"></p>
+      <div class="dialog-buttons">
+        <button id="btn-dialog-cancel" class="btn-cancel" style="display:none;">Cancel</button>
+        <button id="btn-dialog-ok" class="btn-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimap -->
+  <button id="minimap-toggle" onclick="toggleMinimap()" title="Toggle Minimap">🗺</button>
+  <div id="minimap-container">
+    <div id="minimap">
+      <canvas id="minimap-canvas" width="200" height="140"></canvas>
+      <div id="minimap-viewport"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- Keyboard Hints -->
+  <div class="kbd-hint">
+    <span><kbd>+</kbd><kbd>-</kbd> Zoom</span>
+    <span><kbd>R</kbd> Reset</span>
+    <span><kbd>/</kbd> Search</span>
+    <span><kbd>Esc</kbd> Close</span>
+  </div>
+
+  <script>
+    // ======================================================
+    // PERMANENT DATA SECTION
+    // Paste your generated JSON code replacing 'null' below:
+    // ======================================================
+
+    const permanentTreeData = {}
+
+
+    // ======================================================
+  </script>
+  <script src="app.js"></script>
+</body>
+
+</html>
